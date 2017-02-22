@@ -1,7 +1,9 @@
 # Tensorflow workshop with Jan Idziak
 #-------------------------------------
 #
-#script is a part from sklean workshop  
+# Based on the tflearn examples	
+#
+
 # -*- coding: utf-8 -*-
 """
 Simple example using LSTM recurrent neural network to classify IMDB
@@ -17,14 +19,9 @@ Links:
     - http://deeplearning.cs.cmu.edu/pdfs/Hochreiter97_lstm.pdf
     - http://ai.stanford.edu/~amaas/data/sentiment/
 """
-#
-# Implementing Recurent Neural Network
-#---------------------------------------
-#
-###Scikit Learn Supervised Learning
 from __future__ import division, print_function, absolute_import
-import tensorflow as tf
-import tensorflow.contrib.learn as tflearn
+
+import tflearn
 from tflearn.data_utils import to_categorical, pad_sequences
 from tflearn.datasets import imdb
 
