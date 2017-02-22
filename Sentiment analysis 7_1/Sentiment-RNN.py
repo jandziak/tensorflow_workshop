@@ -1,3 +1,9 @@
+# Tensorflow workshop with Jan Idziak
+#-------------------------------------
+#
+# Based on the https://github.com/nicholaslocascio
+#
+#
 import tensorflow as tf
 # tf.reset_default_graph()
 session = tf.InteractiveSession()
