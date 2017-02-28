@@ -1,3 +1,9 @@
 17flowers
 MNIST-data
 imdb.pkl
+checkpoint
+data
+model_googlenet-600.data-00000-of-00001
+model_googlenet-600.index
+model_googlenet-600.meta
+
