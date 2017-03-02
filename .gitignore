@@ -18,3 +18,4 @@ cifar_apply-26800.meta
 cifar_apply.data-00000-of-00001
 cifar_apply.index
 cifar_apply.meta
+vgg16.tflearn
