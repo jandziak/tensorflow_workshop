@@ -31,7 +31,7 @@ print(sess.run(converted_matrix))
 #Add (substract) two martices (tensors)
 print(sess.run(identity_matrix + identity_matrix))
 print(sess.run(tf.add(identity_matrix, identity_matrix)))
-print(sess.run(tf.sub(identity_matrix, identity_matrix)))
+print(sess.run(tf.subtract(identity_matrix, identity_matrix)))
 
 #Matrix multiplication and transpose
 uni_times_const = tf.matmul(uniform_matrix, const_matrix)

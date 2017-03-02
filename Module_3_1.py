@@ -8,6 +8,7 @@
 import numpy as np
 import tensorflow as tf
 from sklearn import datasets
+import requests
 
 #Iris data
 iris = datasets.load_iris()
@@ -16,7 +17,7 @@ print(set(iris.target))
 print(iris.data[0])
 print(iris.feature_names)
 
-# Housing Price Data
+#Housing Price Data
 housing_url = 'https://archive.ics.uci.edu/ml/machine-learning-databases/housing/housing.data'
 housing_header = ['CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX', 'PTRATIO', 'B', 'LSTAT', 'MEDV']
 housing_file = requests.get(housing_url)
@@ -28,16 +29,11 @@ print(housing_header)
 #MNIST Handwriting Data
 from tensorflow.examples.tutorials.mnist import input_data
 
-mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+mnist = input_data.read_data_sets("data/", one_hot=True)
 print(len(mnist.train.images))
 print(len(mnist.test.images))
 print(len(mnist.validation.images))
 print(mnist.train.labels[1,:])
-
-# Ham/Spam Text Data
-import requests
-import io
-from zipfile import ZipFile
 
 
 # Movie Review Data

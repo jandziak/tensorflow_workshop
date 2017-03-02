@@ -160,4 +160,3 @@ clf.fit(X_train,y_train)
 print(clf.predict(X_test))
 print(y_test)
 print(X)
-

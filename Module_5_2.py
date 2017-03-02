@@ -74,7 +74,7 @@ x_vals = np.array([[x[ix] for ix, feature in enumerate(birth_header) if feature 
 sess = tf.Session()
 
 # Split data into train/test = 80%/20%
-train_indices = np.random.choice(len(x_vals), round(len(x_vals)*0.8), replace=False)
+train_indices = np.random.choice(len(x_vals), int(round(len(x_vals)*0.8)), replace=False)
 test_indices = np.array(list(set(range(len(x_vals))) - set(train_indices)))
 x_vals_train = x_vals[train_indices]
 x_vals_test = x_vals[test_indices]

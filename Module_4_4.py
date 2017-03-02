@@ -45,7 +45,7 @@ means = bucket_mean(points, best_centroids, K)
 with tf.control_dependencies([did_assignments_change]):
     do_updates = tf.group(
         centroids.assign(means),
-        cluster_assignvaluesments.assign(best_centroids))
+        cluster_assignments.assign(best_centroids))
 
 init = tf.initialize_all_variables()
 

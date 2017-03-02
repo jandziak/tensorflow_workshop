@@ -7,11 +7,10 @@
 # skflow intro clasifiers 
 #---------------------------------------
 #
-import tensorflow.contrib.learn.python.learn as learn
+import tensorflow.contrib.learn as learn
 from sklearn import datasets, metrics, preprocessing
 import tensorflow as tf
-import tensorflow.contrib.layers.python.layers as layers
-import tensorflow.contrib.learn.python.learn as learn
+import tensorflow.contrib.layers as layers
 
 #Linear Classifier
 iris = datasets.load_iris()
