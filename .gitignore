@@ -19,3 +19,7 @@ cifar_apply.data-00000-of-00001
 cifar_apply.index
 cifar_apply.meta
 models/vgg16.tflearn
+Workshop old
+input
+model.yaml
+Test.py
