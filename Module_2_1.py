@@ -8,7 +8,7 @@ import numpy as np
 
 
 #Simple daffinition of the tensor, constant, and variable
-tensor = tf.zeros([1, 10])
+tensor = tf.zeros([2, 2, 3])
 print(tensor)
 
 constant = tf.constant([2, 3])
@@ -33,30 +33,6 @@ with tf.Session() as sess:
 #Session initializaiton
 sess = tf.Session()
 
-#More sophisticated variables
-n_row = 3
-n_col = 2
-
-#Ones vector
-ones = tf.Variable(tf.ones([n_row, n_col]))
-
-#Constant value tensor
-const = tf.Variable(tf.constant(-1, shape=[n_row, n_col]))
-
-#Linear Space tensor
-linear = tf.Variable(tf.linspace(start=0.0, stop=13, num=7))
-
-#Sequence tensor
-seq = tf.Variable(tf.range(start=6, limit=23, delta=3))
-
-#Random number 
-rand = tf.Variable(tf.random_normal([n_row, n_col], mean=0.0, stddev=1.5))
-
-#Printing ther results
-#Remember always to initialize your variables
-sess.run(rand.initializer)
-print(sess.run(rand))
-sess.close()
 
 #Placeholders what is it and how does it work?
 sess = tf.Session()
@@ -71,14 +47,19 @@ print(sess.run(y, feed_dict={x: rand_array}))
 
 
 
-### Exercise modelue_1_1
+# ### Exercise modelue_2_1
 
-#Create new variables with:
-#	a) values 1, 2, 3 
-#	b) values 1, 2, 3, 4, 5, 6 having 2 columns and 3 rows
-#	c) values 1, 2, 3,... 100 having 25 columns and 4 rows
-#	d) constant values 5 having 10 25 columns and 4 rows
+# #    create placeholder x of a shape (2, 2)
+# #    y = x**2 + x
+# #    create random matrix of a shape (2, 2)
+# #    feed x
+# #    look at y
 
-#Print results using single initializer 
+# #Print results using single initializer 
 
 
+x = tf.placeholder(tf.float32, shape=(2, 2))
+#x**2 + x
+y = tf.add(tf.multiply(x, x), x)
+rand_array_2 = np.random.rand(2, 2)
+print(sess.run(y, feed_dict ={x: rand_array_2}))

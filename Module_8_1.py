@@ -2,82 +2,66 @@
 #-------------------------------------
 #
 #script harvested from:
-#https://github.com/tensorflow/tensorflow/tree/master/tensorflow/contrib/learn/python/learn
+#https://pythonprogramming.net
 #
-# skflow intro clasifiers 
+# Implementing Recurent Neural Network
 #---------------------------------------
 #
-import tensorflow.contrib.learn as learn
-from sklearn import datasets, metrics, preprocessing
 import tensorflow as tf
-import tensorflow.contrib.layers as layers
+from tensorflow.examples.tutorials.mnist import input_data
+from tensorflow.contrib import rnn 
+mnist = input_data.read_data_sets("data", one_hot = True)
 
-#Linear Classifier
-iris = datasets.load_iris()
-feature_columns = learn.infer_real_valued_columns_from_input(iris.data)
-classifier = learn.LinearClassifier(n_classes=3, feature_columns=feature_columns)
-classifier.fit(iris.data, iris.target, steps=200, batch_size=32)
-iris_predictions = list(classifier.predict(iris.data, as_iterable=True))
-score = metrics.accuracy_score(iris.target, iris_predictions)
-print("Accuracy: %f" % score)
+hm_epochs = 3
+n_classes = 10
+batch_size = 128
+chunk_size = 28
+n_chunks = 28
+rnn_size = 128
 
-#Linear Regression
-boston = datasets.load_boston()
-x = preprocessing.StandardScaler().fit_transform(boston.data)
-feature_columns = learn.infer_real_valued_columns_from_input(x)
-regressor = learn.LinearRegressor(feature_columns=feature_columns)
-regressor.fit(x, boston.target, steps=200, batch_size=32)
-boston_predictions = list(regressor.predict(x, as_iterable=True))
-score = metrics.mean_squared_error(boston_predictions, boston.target)
-print ("MSE: %f" % score)
 
-# Deep Neural Network
-iris = datasets.load_iris()
-feature_columns = learn.infer_real_valued_columns_from_input(iris.data)
-classifier = learn.DNNClassifier(hidden_units=[10, 20, 10], n_classes=3, feature_columns=feature_columns)
-classifier.fit(iris.data, iris.target, steps=200, batch_size=32)
-iris_predictions = list(classifier.predict(iris.data, as_iterable=True))
-score = metrics.accuracy_score(iris.target, iris_predictions)
-print("Accuracy: %f" % score)
+x = tf.placeholder('float', [None, n_chunks,chunk_size])
+y = tf.placeholder('float')
 
-# #Custom model
-iris = datasets.load_iris()
+def recurrent_neural_network(x):
+    layer = {'weights':tf.Variable(tf.random_normal([rnn_size,n_classes])),
+             'biases':tf.Variable(tf.random_normal([n_classes]))}
 
-def my_model(features, labels):
-  """DNN with three hidden layers."""
-  # Convert the labels to a one-hot tensor of shape (length of features, 3) and
-  # with a on-value of 1 for each one-hot vector of length 3.
-  labels = tf.one_hot(labels, 3, 1, 0)
-  # Create three fully connected layers respectively of size 10, 20, and 10.
-  features = layers.stack(features, layers.fully_connected, [10, 20, 10])
-  # Create two tensors respectively for prediction and loss.
-  prediction, loss = (
-      tf.contrib.learn.models.logistic_regression(features, labels)
-  )
-  # Create a tensor for training op.
-  train_op = tf.contrib.layers.optimize_loss(
-      loss, tf.contrib.framework.get_global_step(), optimizer='Adagrad',
-      learning_rate=0.1)
-  return {'class': tf.argmax(prediction, 1), 'prob': prediction}, loss, train_op
-classifier = learn.Estimator(model_fn=my_model)
-classifier.fit(iris.data, iris.target, steps=1000)
-y_predicted = [
-  p['class'] for p in classifier.predict(iris.data, as_iterable=True)]
-score = metrics.accuracy_score(iris.target, y_predicted)
-print('Accuracy: {0:f}'.format(score))
+    x = tf.transpose(x, [1,0,2])
+    x = tf.reshape(x, [-1, chunk_size])
+    x = tf.split(x, n_chunks, 0)
 
-# Deep Neural Network plus save
-iris = datasets.load_iris()
-feature_columns = learn.infer_real_valued_columns_from_input(iris.data)
-classifier = learn.DNNClassifier(hidden_units=[10, 20, 10], n_classes=3, 
-    feature_columns=feature_columns, model_dir="tmp/my_model")
-classifier.fit(iris.data, iris.target, steps=200, batch_size=32)
-iris_predictions = list(classifier.predict(iris.data, as_iterable=True))
-score = metrics.accuracy_score(iris.target, iris_predictions)
-print("Accuracy: %f" % score)
+    lstm_cell = rnn.BasicLSTMCell(rnn_size) 
+    outputs, states = rnn.static_rnn(lstm_cell, x, dtype=tf.float32)
 
-# By pasting tensorboard --logdir=/tmp/my_model
-# into your terminal the session of tensorboard 
-# would be created
-# Look at your computational graph at:
-# http://127.0.1.1:6006
+    output = tf.matmul(outputs[-1],layer['weights']) + layer['biases']
+
+    return output
+
+def train_neural_network(x):
+    prediction = recurrent_neural_network(x)
+    cost = tf.reduce_mean( tf.nn.softmax_cross_entropy_with_logits(logits=prediction,labels=y) )
+    optimizer = tf.train.AdamOptimizer().minimize(cost)
+    
+    
+    with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+
+        for epoch in range(hm_epochs):
+            epoch_loss = 0
+            for _ in range(int(mnist.train.num_examples/batch_size)):
+                epoch_x, epoch_y = mnist.train.next_batch(batch_size)
+                epoch_x = epoch_x.reshape((batch_size,n_chunks,chunk_size))
+
+                _, c = sess.run([optimizer, cost], feed_dict={x: epoch_x, y: epoch_y})
+                epoch_loss += c
+
+            print('Epoch', epoch+1, 'completed out of',hm_epochs,'loss:',epoch_loss)
+
+        correct = tf.equal(tf.argmax(prediction, 1), tf.argmax(y, 1))
+
+        accuracy = tf.reduce_mean(tf.cast(correct, 'float'))
+        print('Accuracy:',accuracy.eval({x:mnist.test.images.reshape((-1, n_chunks, chunk_size)), y:mnist.test.labels}))
+
+
+train_neural_network(x)

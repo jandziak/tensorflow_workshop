@@ -1,3 +1,4 @@
-if 'session' in locals() and session is not None:
-    print('Close interactive session')
-    session.close()
+import tensorflow as tf
+import numpy as np
+from sklearn import datasets
+from sklearn.model_selection import train_test_split

@@ -1,110 +1,96 @@
 # Tensorflow workshop with Jan Idziak
 #-------------------------------------
 #
-#script harvested from:
-#https://github.com/nfmcclure
+#Graph and Loss visualization using Tensorboard.
+#This example is using the MNIST database of handwritten digits
+#(http://yann.lecun.com/exdb/mnist/)
+#Author: Aymeric Damien
+#Project: https://github.com/aymericdamien/TensorFlow-Examples/
+#--------------------------------------------------------------
 #
-# Implementing a one-layer Neural Network
-#---------------------------------------
-#
-# We will illustrate how to create a one hidden layer NN
-#
-# We will use the iris data for this exercise
-#
-# We will build a one-hidden layer neural network
-#  to predict the fourth attribute, Petal Width from
-#  the other three (Sepal length, Sepal width, Petal length).
+from __future__ import print_function
 
-import matplotlib.pyplot as plt
-import numpy as np
 import tensorflow as tf
-from sklearn import datasets
 
-iris = datasets.load_iris()
-x_vals = np.array([x[0:3] for x in iris.data])
-y_vals = np.array([x[3] for x in iris.data])
+# Import MNIST data
+from tensorflow.examples.tutorials.mnist import input_data
+mnist = input_data.read_data_sets("./data/", one_hot=True)
 
-# Create graph session 
-sess = tf.Session()
+# Parameters
+learning_rate = 0.01
+training_epochs = 3
+batch_size = 100
+display_step = 1
+logs_path = '/tmp/tensorflow_logs/example'
 
-# Split data into train/test = 80%/20%
-train_indices = np.random.choice(len(x_vals), int(round(len(x_vals)*0.8)), replace=False)
-test_indices = np.array(list(set(range(len(x_vals))) - set(train_indices)))
-x_vals_train = x_vals[train_indices]
-x_vals_test = x_vals[test_indices]
-y_vals_train = y_vals[train_indices]
-y_vals_test = y_vals[test_indices]
+# tf Graph Input
+# mnist data image of shape 28*28=784
+x = tf.placeholder(tf.float32, [None, 784], name='InputData')
+# 0-9 digits recognition => 10 classes
+y = tf.placeholder(tf.float32, [None, 10], name='LabelData')
 
-# Normalize by column (min-max norm)
-def normalize_cols(m):
-    col_max = m.max(axis=0)
-    col_min = m.min(axis=0)
-    return (m-col_min) / (col_max - col_min)
-    
-x_vals_train = np.nan_to_num(normalize_cols(x_vals_train))
-x_vals_test = np.nan_to_num(normalize_cols(x_vals_test))
+# Set model weights
+W = tf.Variable(tf.zeros([784, 10]), name='Weights')
+b = tf.Variable(tf.zeros([10]), name='Bias')
 
-# Declare batch size
-batch_size = 50
+# Construct model and encapsulating all ops into scopes, making
+# Tensorboard's Graph visualization more convenient
+with tf.name_scope('Model'):
+    # Model
+    pred = tf.nn.softmax(tf.matmul(x, W) + b) # Softmax
+with tf.name_scope('Loss'):
+    # Minimize error using cross entropy
+    cost = tf.reduce_mean(-tf.reduce_sum(y*tf.log(pred), reduction_indices=1))
+with tf.name_scope('SGD'):
+    # Gradient Descent
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost)
+with tf.name_scope('Accuracy'):
+    # Accuracy
+    acc = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
+    acc = tf.reduce_mean(tf.cast(acc, tf.float32))
 
-# Initialize placeholders
-x_data = tf.placeholder(shape=[None, 3], dtype=tf.float32)
-y_target = tf.placeholder(shape=[None, 1], dtype=tf.float32)
-
-# Create variables for both NN layers
-hidden_layer_nodes = 5
-A1 = tf.Variable(tf.random_normal(shape=[3,hidden_layer_nodes])) # inputs -> hidden nodes
-b1 = tf.Variable(tf.random_normal(shape=[hidden_layer_nodes]))   # one biases for each hidden node
-A2 = tf.Variable(tf.random_normal(shape=[hidden_layer_nodes,1])) # hidden inputs -> 1 output
-b2 = tf.Variable(tf.random_normal(shape=[1]))   # 1 bias for the output
-
-
-# Declare model operations
-hidden_output = tf.nn.relu(tf.add(tf.matmul(x_data, A1), b1))
-final_output = tf.nn.relu(tf.add(tf.matmul(hidden_output, A2), b2))
-
-# Declare loss function (MSE)
-loss = tf.reduce_mean(tf.square(y_target - final_output))
-
-# Declare optimizer
-my_opt = tf.train.GradientDescentOptimizer(0.005)
-train_step = my_opt.minimize(loss)
-
-# Initialize variables
+# Initializing the variables
 init = tf.global_variables_initializer()
-sess.run(init)
 
-# Training loop
-loss_vec = []
-test_loss = []
-for i in range(500):
-    rand_index = np.random.choice(len(x_vals_train), size=batch_size)
-    rand_x = x_vals_train[rand_index]
-    rand_y = np.transpose([y_vals_train[rand_index]])
-    sess.run(train_step, feed_dict={x_data: rand_x, y_target: rand_y})
+# Create a summary to monitor cost tensor
+tf.summary.scalar("loss", cost)
+# Create a summary to monitor accuracy tensor
+tf.summary.scalar("accuracy", acc)
+# Merge all summaries into a single op
+merged_summary_op = tf.summary.merge_all()
 
-    temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
-    loss_vec.append(np.sqrt(temp_loss))
-    
-    test_temp_loss = sess.run(loss, feed_dict={x_data: x_vals_test, y_target: np.transpose([y_vals_test])})
-    test_loss.append(np.sqrt(test_temp_loss))
-    if (i+1)%50==0:
-        print('Generation: ' + str(i+1) + '. Loss = ' + str(temp_loss))
+# Launch the graph
+with tf.Session() as sess:
+    sess.run(init)
 
+    # op to write logs to Tensorboard
+    summary_writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
 
-# Plot loss (MSE) over time
-plt.plot(loss_vec, 'k-', label='Train Loss')
-plt.plot(test_loss, 'r--', label='Test Loss')
+    # Training cycle
+    for epoch in range(training_epochs):
+        avg_cost = 0.
+        total_batch = int(mnist.train.num_examples/batch_size)
+        # Loop over all batches
+        for i in range(total_batch):
+            batch_xs, batch_ys = mnist.train.next_batch(batch_size)
+            # Run optimization op (backprop), cost op (to get loss value)
+            # and summary nodes
+            _, c, summary = sess.run([optimizer, cost, merged_summary_op],
+                                     feed_dict={x: batch_xs, y: batch_ys})
+            # Write logs at every iteration
+            summary_writer.add_summary(summary, epoch * total_batch + i)
+            # Compute average loss
+            avg_cost += c / total_batch
+        # Display logs per epoch step
+        if (epoch+1) % display_step == 0:
+            print("Epoch:", '%04d' % (epoch+1), "cost=", "{:.9f}".format(avg_cost))
 
-plt.title('Loss (MSE) per Generation')
-plt.legend(loc='upper right')
-plt.xlabel('Generation')
-plt.ylabel('Loss')
-plt.show()
+    print("Optimization Finished!")
 
-### Exercise modelue_4_2
+    # Test model
+    # Calculate accuracy
+    print("Accuracy:", acc.eval({x: mnist.test.images, y: mnist.test.labels}))
 
-#Create new variables with:
-#   a) Create new neural network with 10 and 15 hidden nodes and compare loss
-#   b) Repeat the experiment for the p-huber loss (0.25)
-#   c) Use other activation function 
+    print("Run the command line:\n" \
+          "--> tensorboard --logdir=/tmp/tensorflow_logs " \
+          "\nThen open http://127.0.1.1:6006/ into your web browser")

@@ -1,53 +1,83 @@
 # Tensorflow workshop with Jan Idziak
 #-------------------------------------
 #
-# Based on the tflearn examples	
+#script harvested from:
+#https://pythonprogramming.net
 #
+# Implementing Convolutional Neural Network
+#---------------------------------------
+#
+import tensorflow as tf
+from tensorflow.examples.tutorials.mnist import input_data
+mnist = input_data.read_data_sets("data/", one_hot = True)
 
-# -*- coding: utf-8 -*-
-"""
-Simple example using LSTM recurrent neural network to classify IMDB
-sentiment dataset.
-References:
-    - Long Short Term Memory, Sepp Hochreiter & Jurgen Schmidhuber, Neural
-    Computation 9(8): 1735-1780, 1997.
-    - Andrew L. Maas, Raymond E. Daly, Peter T. Pham, Dan Huang, Andrew Y. Ng,
-    and Christopher Potts. (2011). Learning Word Vectors for Sentiment
-    Analysis. The 49th Annual Meeting of the Association for Computational
-    Linguistics (ACL 2011).
-Links:
-    - http://deeplearning.cs.cmu.edu/pdfs/Hochreiter97_lstm.pdf
-    - http://ai.stanford.edu/~amaas/data/sentiment/
-"""
-from __future__ import division, print_function, absolute_import
+n_classes = 10
+batch_size = 128
 
-import tflearn
-from tflearn.data_utils import to_categorical, pad_sequences
-from tflearn.datasets import imdb
+x = tf.placeholder('float', [None, 784])
+y = tf.placeholder('float')
 
-# IMDB Dataset loading
-train, test, _ = imdb.load_data(path='imdb.pkl', n_words=10000,
-                                valid_portion=0.1)
-trainX, trainY = train
-testX, testY = test
+keep_rate = 0.8
+keep_prob = tf.placeholder(tf.float32)
 
-# Data preprocessing
-# Sequence padding
-trainX = pad_sequences(trainX, maxlen=100, value=0.)
-testX = pad_sequences(testX, maxlen=100, value=0.)
-# Converting labels to binary vectors
-trainY = to_categorical(trainY, nb_classes=2)
-testY = to_categorical(testY, nb_classes=2)
+def conv2d(x, W):
+    return tf.nn.conv2d(x, W, strides=[1,1,1,1], padding='SAME')
 
-# Network building
-net = tflearn.input_data([None, 100])
-net = tflearn.embedding(net, input_dim=10000, output_dim=128)
-net = tflearn.lstm(net, 128, dropout=0.8)
-net = tflearn.fully_connected(net, 2, activation='softmax')
-net = tflearn.regression(net, optimizer='adam', learning_rate=0.001,
-                         loss='categorical_crossentropy')
+def maxpool2d(x):
+    #size of window movement of window
+    return tf.nn.max_pool(x, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
-# Training
-model = tflearn.DNN(net, tensorboard_verbose=0)
-model.fit(trainX, trainY, validation_set=(testX, testY), show_metric=True,
-batch_size=32)
+
+
+def convolutional_neural_network(x):
+    weights = {'W_conv1':tf.Variable(tf.random_normal([5,5,1,32])),
+               'W_conv2':tf.Variable(tf.random_normal([5,5,32,64])),
+               'W_fc':tf.Variable(tf.random_normal([7*7*64,1024])),
+               'out':tf.Variable(tf.random_normal([1024, n_classes]))}
+
+    biases = {'b_conv1':tf.Variable(tf.random_normal([32])),
+               'b_conv2':tf.Variable(tf.random_normal([64])),
+               'b_fc':tf.Variable(tf.random_normal([1024])),
+               'out':tf.Variable(tf.random_normal([n_classes]))}
+
+    x = tf.reshape(x, shape=[-1, 28, 28, 1])
+
+    conv1 = tf.nn.relu(conv2d(x, weights['W_conv1']) + biases['b_conv1'])
+    conv1 = maxpool2d(conv1)
+    
+    conv2 = tf.nn.relu(conv2d(conv1, weights['W_conv2']) + biases['b_conv2'])
+    conv2 = maxpool2d(conv2)
+
+    fc = tf.reshape(conv2,[-1, 7*7*64])
+    fc = tf.nn.relu(tf.matmul(fc, weights['W_fc'])+biases['b_fc'])
+    fc = tf.nn.dropout(fc, keep_rate)
+
+    output = tf.matmul(fc, weights['out'])+biases['out']
+
+    return output
+
+def train_neural_network(x):
+    prediction = convolutional_neural_network(x)
+    cost = tf.reduce_mean( tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=y) )
+    optimizer = tf.train.AdamOptimizer().minimize(cost)
+    
+    hm_epochs = 3
+    with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+
+        for epoch in range(hm_epochs):
+            epoch_loss = 0
+            for _ in range(int(mnist.train.num_examples/batch_size)):
+                epoch_x, epoch_y = mnist.train.next_batch(batch_size)
+                _, c = sess.run([optimizer, cost], feed_dict={x: epoch_x, y: epoch_y})
+                epoch_loss += c
+
+            print('Epoch', epoch+1, 'completed out of',hm_epochs,'loss:',epoch_loss)	
+        correct = tf.equal(tf.argmax(prediction, 1), tf.argmax(y, 1))
+        accuracy = tf.reduce_mean(tf.cast(correct, 'float'))
+        acc = []
+        for i in range(100):
+        	acc.append(accuracy.eval({x:mnist.test.images[(1 + (i*100)):((i+1)*100),], y:mnist.test.labels[(1 + (i*100)):((i+1)*100),]}))
+        print('Accuracy:', sess.run(tf.reduce_mean(acc)))
+
+train_neural_network(x)

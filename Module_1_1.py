@@ -15,7 +15,7 @@ softmax = tf.nn.softmax(relu_out)
 sess.run(tf.global_variables_initializer())
 answer = np.array([[0.0, 1.0, 3.0]])
 result = answer - sess.run(softmax, feed_dict={x:np.array([[1.0, 2.0, 3.0]])})
-print result
+print(result)
 
 # optimization
 

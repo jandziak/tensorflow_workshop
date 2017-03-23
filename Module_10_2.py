@@ -9,7 +9,6 @@ import tflearn
 from tflearn.data_preprocessing import ImagePreprocessing
 import os
 import numpy as np
-import cv2
 from sklearn.preprocessing import LabelEncoder
 from keras.utils import np_utils
 from tflearn.layers.core import input_data, dropout, fully_connected
@@ -55,4 +54,4 @@ model.fit(X, Y, n_epoch=1, validation_set=(X_test, Y_test), shuffle=True,
           show_metric=True, batch_size=64, snapshot_step=200,
           snapshot_epoch=False, run_id='cifar_apply')
 
-model.save('cifar_apply')
+model.save('cifar_apply_1')
