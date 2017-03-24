@@ -62,3 +62,9 @@ def train_neural_network(x):
         print('Accuracy:',accuracy.eval({x:mnist.test.images, y:mnist.test.labels}))
 
 train_neural_network(x)
+
+#Prepare one layer perceptron neural network for the Iris data.
+#Use:
+#- get_data() function from Logistic Regression script.
+#- neural_network_model() -> modify it for iris data
+#- train_regression() -> modify it for Single Layer Perceptron

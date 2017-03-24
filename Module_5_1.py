@@ -94,3 +94,6 @@ with tf.Session() as sess:
     print("Run the command line:\n" \
           "--> tensorboard --logdir=/tmp/tensorflow_logs " \
           "\nThen open http://127.0.1.1:6006/ into your web browser")
+
+
+# prepare tensorboard for previous model (Module 4_1)

@@ -1,21 +1,3 @@
-# Tensorflow workshop with Jan Idziak
-#-------------------------------------
-#
-#script based on the:
-# Implementation of a simple MLP network with 
-# one hidden layer.
-#
-# Logistic Regression
-#----------------------------------
-#
-# This function shows how to use TensorFlow to
-# solve logistic regression.
-# y = argmax(sigmoid(Ax + b))
-# y = argmax(sigmoid(Wx))
-#
-# We will use the iris data, specifically:
-#  y = Iris Type 
-#  x = Pedal Length, Petal Width, Sepal Width, Sepal Length
 import tensorflow as tf
 import numpy as np
 from sklearn import datasets
@@ -23,19 +5,12 @@ from sklearn.model_selection import train_test_split
 
 RANDOM_SEED = 42
 tf.set_random_seed(RANDOM_SEED)
+n_nodes_hl1 = 100
 
+n_classes = 3
 
-def init_weights(shape):
-    """ Weight initialization """
-    weights = tf.random_normal(shape, stddev=0.1)
-    return tf.Variable(weights)
-
-def forwardprop(X, w_1):
-    """
-    Forward-propagation.
-    """
-    yhat = tf.nn.sigmoid(tf.matmul(X, w_1))  # The \sigma function
-    return yhat
+X = tf.placeholder('float', [None, 5])
+y = tf.placeholder('float')
 
 def get_iris_data():
     """ Read the iris data set and split them into training and test sets """
@@ -53,6 +28,25 @@ def get_iris_data():
     all_Y = np.eye(num_labels)[target]  # One liner trick!
     return train_test_split(all_X, all_Y, test_size=0.33, random_state=RANDOM_SEED)
 
+
+def neural_network_model(data):
+    hidden_1_layer = {'weights':tf.Variable(tf.random_normal([5, n_nodes_hl1])),
+                      'biases':tf.Variable(tf.random_normal([n_nodes_hl1]))}
+
+
+    output_layer = {'weights':tf.Variable(tf.random_normal([n_nodes_hl1, n_classes])),
+                    'biases':tf.Variable(tf.random_normal([n_classes])),}
+
+
+    l1 = tf.add(tf.matmul(data,hidden_1_layer['weights']), hidden_1_layer['biases'])
+    l1 = tf.nn.relu(l1)
+
+    output = tf.matmul(l1,output_layer['weights']) + output_layer['biases']
+
+    return output
+
+
+
 def train_regression():
     train_X, test_X, train_y, test_y = get_iris_data()
 
@@ -64,11 +58,8 @@ def train_regression():
     X = tf.placeholder("float", shape=[None, x_size])
     y = tf.placeholder("float", shape=[None, y_size])
 
-    # Weight initializations
-    w_1 = init_weights((x_size, y_size))
-
     # Forward propagation
-    yhat    = forwardprop(X, w_1)
+    yhat    = neural_network_model(X)
     predict = tf.argmax(yhat, axis=1)
 
     # Backward propagation
@@ -77,9 +68,9 @@ def train_regression():
 
     # Run SGD
     sess = tf.Session()
+
     init = tf.global_variables_initializer()
     sess.run(init)
-
     for epoch in range(15):
         # Train with each example
         for i in range(len(train_X)):
@@ -97,13 +88,3 @@ def train_regression():
 
 train_regression()
 
-# Exercise for module 3_1 
-# Prepare script for linear regression for the Iris data
-# We will use the iris data, specifically:
-#  y = Sepal Length
-#  x = Pedal Length, Petal Width, Sepal Width
-
-# Use functions
-# - init_weights,
-# - forwardprop -> modify for linear regression, 
-# - get_iris_data -> modify for data entry train/target

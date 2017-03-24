@@ -65,3 +65,11 @@ def train_neural_network(x):
 
 
 train_neural_network(x)
+
+#Prepare RNN neural network for the Iris data.
+#Use:
+# - BasicLSTM cell
+# - Initialize data with random uniform distribution variables
+# - Put two rows of the picture as a chunk size
+# - RNN size should be 56
+# - Use SGD optimizer

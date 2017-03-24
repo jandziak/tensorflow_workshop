@@ -9,7 +9,7 @@ batch_size = 100
 
 x = tf.placeholder('float', [None, 784])
 y = tf.placeholder('float')
-logs_path = '/tmp/tensorflow_logs/example'
+logs_path = '/tmp/tensorflow_logs_chalenge/example'
 
 def neural_network_model(data):
     hidden_1_layer = {'weights':tf.Variable(tf.random_normal([784, n_nodes_hl1])),
@@ -69,8 +69,7 @@ def train_neural_network(x):
 
 train_neural_network(x)
 
-#Prepare one layer perceptron neural network for the Iris data.
-#Use:
-#- get_data() function from Logistic Regression script.
-#- neural_network_model() -> modify it for iris data
-#- train_regression() -> modify it for Single Layer Perceptron
+print("Run the command line:\n" \
+      "--> tensorboard --logdir=/tmp/tensorflow_logs_chalenge " \
+      "\nThen open http://127.0.1.1:6006/ into your web browser")
+

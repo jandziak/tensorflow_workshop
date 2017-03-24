@@ -66,5 +66,5 @@ plt.ylim(-1.5, 3)
 plt.legend(loc='lower right', prop={'size': 11})
 plt.show()
 
-# ### Exercise modelue_4_0
+# ### Exercise modelue_3_0
 # # We will use some of the loss functions in further studies

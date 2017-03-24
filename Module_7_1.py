@@ -42,10 +42,10 @@ def convolutional_neural_network(x):
 
     x = tf.reshape(x, shape=[-1, 28, 28, 1])
 
-    conv1 = tf.nn.relu(conv2d(x, weights['W_conv1']) + biases['b_conv1'])
+    conv1 = tf.nn.relu6(conv2d(x, weights['W_conv1']) + biases['b_conv1'])
     conv1 = maxpool2d(conv1)
     
-    conv2 = tf.nn.relu(conv2d(conv1, weights['W_conv2']) + biases['b_conv2'])
+    conv2 = tf.nn.softsign(conv2d(conv1, weights['W_conv2']) + biases['b_conv2'])
     conv2 = maxpool2d(conv2)
 
     fc = tf.reshape(conv2,[-1, 7*7*64])
@@ -81,3 +81,14 @@ def train_neural_network(x):
         print('Accuracy:', sess.run(tf.reduce_mean(acc)))
 
 train_neural_network(x)
+
+#Prepare CNN neural network for the Iris data.
+#Use:
+# - Two conwolutional layers 
+# (filter size: first: 5, returns: 16, second: 3, returns:32) 
+# - Two pooling layers
+# - reshape to appropriate size for the fully connected layer
+
+# Train the network for 3 epochs 
+# Use bach size of 100
+# Calculate accuracy for just 5000 first observations from train set

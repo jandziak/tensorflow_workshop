@@ -17,7 +17,7 @@ from keras.utils import np_utils
 from keras import backend as K
 from keras.models import model_from_yaml
 
-batch_size = 128
+batch_size = 56
 nb_classes = 10
 nb_epoch = 1
 
@@ -86,3 +86,9 @@ model_yaml = model.to_yaml()
 with open("model.yaml", "w") as yaml_file:
     yaml_file.write(model_yaml)
 model.predict (X_test, batch_size=batch_size, verbose=1)
+
+# Prepare CNN using KERAS
+#- copy the architecture from the Module 7_1
+#- use siftsign and relu6 activation functions where required
+#- make sure filter sizes are appropriate
+#- do not use dropout for this case
